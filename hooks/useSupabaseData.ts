@@ -849,8 +849,16 @@ export function useSupabaseData() {
     const userId = getUserId()
     if (userId) {
       setLoading(true)
-      Promise.all([fetchSongs(), fetchPlaylists(), fetchRecentlyPlayed()])
-        .finally(() => setLoading(false))
+      const loadData = async () => {
+        try {
+          await Promise.all([fetchSongs(), fetchPlaylists(), fetchRecentlyPlayed()])
+        } catch (error) {
+          console.error('Error loading data:', error)
+        } finally {
+          setLoading(false)
+        }
+      }
+      loadData()
     } else {
       // Reset data when no user
       songsCache.current = null
@@ -864,6 +872,35 @@ export function useSupabaseData() {
       setLastPlayedSong(null)
       setLoading(false)
     }
+  }, [getUserId()]) // Add dependency to re-run when user changes
+
+  // Also listen for storage changes (when user logs in/out in another tab)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'user_id') {
+        const userId = e.newValue
+        if (userId) {
+          setLoading(true)
+          Promise.all([fetchSongs(), fetchPlaylists(), fetchRecentlyPlayed()])
+            .finally(() => setLoading(false))
+        } else {
+          // User logged out
+          songsCache.current = null
+          likedSongsCache.current = null
+          setSongs([])
+          setPersonalizedSongs([])
+          setTrendingSongs([])
+          setPlaylists([])
+          setLikedSongs(new Set())
+          setRecentlyPlayedSongs([])
+          setLastPlayedSong(null)
+          setLoading(false)
+        }
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
 
   return {

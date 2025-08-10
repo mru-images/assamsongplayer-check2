@@ -76,10 +76,16 @@ export function useAuth() {
       sessionStorage.clear()
       
       setUser(null)
-      setLoading(false)
+      
+      // Force page reload to ensure clean state
+      window.location.href = '/'
     } catch (error) {
       console.error('Sign out error:', error)
-      setLoading(false)
+      // Even if there's an error, clear local state and redirect
+      localStorage.removeItem('user_id')
+      localStorage.removeItem('user_data')
+      setUser(null)
+      window.location.href = '/'
     }
   }
 
