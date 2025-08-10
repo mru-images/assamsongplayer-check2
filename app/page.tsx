@@ -104,8 +104,43 @@ function MusicPlayerContent() {
 
   // Reset all state when user changes
   useEffect(() => {
+    const checkUser = () => {
+      const userId = localStorage.getItem('user_id')
+      if (!userId) {
+        setCurrentSong(null)
+        setIsPlaying(false)
+        setIsPlayerMaximized(false)
+        setCurrentTime(0)
+        setDuration(0)
+        setAudioUrl(null)
+        setPersonalizedList([])
+        setCurrentSongIndex(0)
+        setPlayedSongs(new Set())
+        setListenedSongs(new Set())
+        setCurrentBatchListenedSongs([])
+        setHasSetLastPlayedSong(false)
+        setLastPlayedSongDismissed(false)
+        clearQueue()
+      }
+    }
+    
+    checkUser()
+    
+    // Listen for storage changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'user_id') {
+        checkUser()
+      }
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [clearQueue])
+
+  // Separate effect for initial user check
+  useEffect(() => {
     const userId = localStorage.getItem('user_id')
-    if (!userId) {
+    if (!userId && !loading) {
       setCurrentSong(null)
       setIsPlaying(false)
       setIsPlayerMaximized(false)
@@ -121,7 +156,7 @@ function MusicPlayerContent() {
       setLastPlayedSongDismissed(false)
       clearQueue()
     }
-  }, [user?.id, clearQueue])
+  }, [user?.id, loading, clearQueue])
 
 const loadMoreSongs = () => {
   setDisplayCount(prev => prev + 15);
@@ -783,6 +818,7 @@ const handleNext = async () => {
                 onLoadMore={loadMoreSongs}
                 hasMoreSongs={displayCount < songs.length}
                 trendingSongs={trendingSongs}
+                loading={loading}
               />;
       case 'search':
         return <SearchPage
@@ -808,6 +844,7 @@ const handleNext = async () => {
               onLoadMore={loadMoreSongs}
               hasMoreSongs={displayCount < songs.length} // top 15 trending by views+likes
               trendingSongs={trendingSongs}
+              loading={loading}
 
             />;
     }

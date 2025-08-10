@@ -18,10 +18,11 @@ interface HomePageProps {
   onLoadMore: () => void;
   hasMoreSongs: boolean;
   recentlyPlayedSongs: Song[];
+  loading?: boolean;
 }
 
 
-const HomePage: React.FC<HomePageProps> = ({ songs, trendingSongs, onSongPlay, formatNumber, onAddToPlaylist, onAddToQueue, imageUrls, onLoadMore, hasMoreSongs, recentlyPlayedSongs }) => {
+const HomePage: React.FC<HomePageProps> = ({ songs, trendingSongs, onSongPlay, formatNumber, onAddToPlaylist, onAddToQueue, imageUrls, onLoadMore, hasMoreSongs, recentlyPlayedSongs, loading = false }) => {
   const { isDarkMode } = useTheme();
 
   // Dynamic greeting based on time
@@ -47,7 +48,21 @@ const HomePage: React.FC<HomePageProps> = ({ songs, trendingSongs, onSongPlay, f
   const user = getUserData()
 
   // Show loading state if no songs are loaded yet
-  if (songs.length === 0) {
+  if (songs.length === 0 && !loading) {
+    return (
+      <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'} flex items-center justify-center`}>
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Music size={32} className="text-white" />
+          </div>
+          <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>No music available</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading spinner while data is being fetched
+  if (loading) {
     return (
       <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'} flex items-center justify-center`}>
         <div className="text-center">

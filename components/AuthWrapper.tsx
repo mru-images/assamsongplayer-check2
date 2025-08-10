@@ -8,17 +8,25 @@ interface AuthWrapperProps {
 
 const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
   const { user, loading } = useAuth()
+  const [isInitialized, setIsInitialized] = React.useState(false)
 
   // Check for user_id in localStorage on mount
   useEffect(() => {
-    const userId = localStorage.getItem('user_id')
-    if (!userId && !loading) {
-      console.log('No user_id found in localStorage')
+    const initializeAuth = () => {
+      const userId = localStorage.getItem('user_id')
+      if (!userId && !loading) {
+        console.log('No user_id found in localStorage')
+      }
+      setIsInitialized(true)
     }
+    
+    // Small delay to ensure localStorage is ready
+    const timer = setTimeout(initializeAuth, 100)
+    return () => clearTimeout(timer)
   }, [loading])
 
-  // Show loading spinner only briefly
-  if (loading) {
+  // Show loading spinner while initializing or loading
+  if (loading || !isInitialized) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -32,12 +40,12 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
   }
 
   // Show login page if no user
-  if (!user) {
+  if (!user && isInitialized) {
     return <LoginPage />
   }
 
   // Show main app if user is authenticated
-  return <>{children}</>
+  return user ? <>{children}</> : null
 }
 
 export default AuthWrapper
