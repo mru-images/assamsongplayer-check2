@@ -63,29 +63,39 @@ export function useAuth() {
 
   const signOut = async () => {
     try {
+      console.log('🚪 Starting sign out process...')
       setLoading(true)
       
       // Clear localStorage
       localStorage.removeItem('user_id')
       localStorage.removeItem('user_data')
+      console.log('🗑️ Cleared localStorage')
       
       // Sign out from Supabase
       await supabase.auth.signOut()
+      console.log('✅ Signed out from Supabase')
       
       // Clear any other cached data
       sessionStorage.clear()
       
       setUser(null)
+      setLoading(false)
       
       // Force page reload to ensure clean state
-      window.location.href = '/'
+      console.log('🔄 Forcing page reload...')
+      setTimeout(() => {
+        window.location.reload()
+      }, 100)
     } catch (error) {
       console.error('Sign out error:', error)
       // Even if there's an error, clear local state and redirect
       localStorage.removeItem('user_id')
       localStorage.removeItem('user_data')
       setUser(null)
-      window.location.href = '/'
+      setLoading(false)
+      setTimeout(() => {
+        window.location.reload()
+      }, 100)
     }
   }
 

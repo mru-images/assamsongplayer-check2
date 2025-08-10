@@ -48,6 +48,18 @@ const HomePage: React.FC<HomePageProps> = ({ songs, trendingSongs, onSongPlay, f
   const user = getUserData()
 
   // Show loading state if no songs are loaded yet
+  if (songs.length === 0 && loading) {
+    return (
+      <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'} flex items-center justify-center`}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Loading your music...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show no music message if no songs and not loading
   if (songs.length === 0 && !loading) {
     return (
       <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'} flex items-center justify-center`}>
@@ -56,18 +68,6 @@ const HomePage: React.FC<HomePageProps> = ({ songs, trendingSongs, onSongPlay, f
             <Music size={32} className="text-white" />
           </div>
           <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>No music available</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show loading spinner while data is being fetched
-  if (loading) {
-    return (
-      <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'} flex items-center justify-center`}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-          <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Loading your music...</p>
         </div>
       </div>
     );

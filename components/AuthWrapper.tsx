@@ -14,6 +14,9 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
   useEffect(() => {
     const initializeAuth = () => {
       const userId = localStorage.getItem('user_id')
+      const userData = localStorage.getItem('user_data')
+      console.log('🔍 AuthWrapper initialization - userId:', userId)
+      console.log('🔍 AuthWrapper initialization - userData:', userData ? 'exists' : 'missing')
       if (!userId && !loading) {
         console.log('No user_id found in localStorage')
       }
@@ -25,6 +28,12 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
     return () => clearTimeout(timer)
   }, [loading])
 
+  // Add effect to check user state changes
+  useEffect(() => {
+    console.log('👤 AuthWrapper user state:', user ? 'logged in' : 'not logged in')
+    console.log('⏳ AuthWrapper loading state:', loading)
+    console.log('🚀 AuthWrapper initialized state:', isInitialized)
+  }, [user, loading, isInitialized])
   // Show loading spinner while initializing or loading
   if (loading || !isInitialized) {
     return (

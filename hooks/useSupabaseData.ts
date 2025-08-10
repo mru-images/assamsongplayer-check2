@@ -21,7 +21,14 @@ export function useSupabaseData() {
 
   // Get user ID from localStorage
   const getUserId = (): string | null => {
-    return localStorage.getItem('user_id')
+    try {
+      const userId = localStorage.getItem('user_id')
+      console.log('📱 Getting user ID from localStorage:', userId)
+      return userId
+    } catch (error) {
+      console.error('Error getting user ID:', error)
+      return null
+    }
   }
 
   // Get personalized songs based on user's actual listening preferences
@@ -172,7 +179,9 @@ export function useSupabaseData() {
   // Fetch all songs
   const fetchSongs = async () => {
     const userId = getUserId()
+    console.log('🔍 fetchSongs called with userId:', userId)
     if (!userId) {
+      console.log('❌ No userId found, clearing songs data')
       setSongs([])
       setPersonalizedSongs([])
       setTrendingSongs([])
@@ -180,6 +189,7 @@ export function useSupabaseData() {
     }
     
     try {
+      setLoading(true)
       console.log('Fetching all songs from supabase...');
       const { data: songsData, error } = await supabase
         .from('songs')
@@ -291,6 +301,8 @@ export function useSupabaseData() {
     } catch (error) {
       console.error('Error fetching songs:', error)
       setSongs([])
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -846,20 +858,21 @@ export function useSupabaseData() {
 
   // Initialize data when component mounts
   useEffect(() => {
+    console.log('🚀 useSupabaseData useEffect triggered')
     const userId = getUserId()
+    console.log('👤 Current userId in useEffect:', userId)
     if (userId) {
-      setLoading(true)
       const loadData = async () => {
         try {
+          console.log('📊 Loading data for user:', userId)
           await Promise.all([fetchSongs(), fetchPlaylists(), fetchRecentlyPlayed()])
         } catch (error) {
           console.error('Error loading data:', error)
-        } finally {
-          setLoading(false)
         }
       }
       loadData()
     } else {
+      console.log('🚫 No user found, resetting data')
       // Reset data when no user
       songsCache.current = null
       likedSongsCache.current = null
@@ -872,7 +885,7 @@ export function useSupabaseData() {
       setLastPlayedSong(null)
       setLoading(false)
     }
-  }, [getUserId()]) // Add dependency to re-run when user changes
+  }, []) // Remove dependency to avoid infinite loops
 
   // Also listen for storage changes (when user logs in/out in another tab)
   useEffect(() => {
@@ -880,6 +893,7 @@ export function useSupabaseData() {
       if (e.key === 'user_id') {
         const userId = e.newValue
         if (userId) {
+          console.log('🔄 Storage change detected - user logged in:', userId)
           setLoading(true)
           Promise.all([fetchSongs(), fetchPlaylists(), fetchRecentlyPlayed()])
             .finally(() => setLoading(false))
@@ -903,6 +917,25 @@ export function useSupabaseData() {
     return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
 
+  // Add a separate effect to watch for user changes
+  useEffect(() => {
+    const checkAndLoadData = () => {
+      const userId = getUserId()
+      console.log('🔄 User check effect triggered, userId:', userId)
+      if (userId && songs.length === 0 && !loading) {
+        console.log('📊 User found but no songs loaded, loading data...')
+        const loadData = async () => {
+          try {
+            await Promise.all([fetchSongs(), fetchPlaylists(), fetchRecentlyPlayed()])
+          } catch (error) {
+            console.error('Error loading data:', error)
+          }
+        }
+        loadData()
+      }
+    }
+    checkAndLoadData()
+  }, [songs.length, loading])
   return {
     songs, // all songs
     personalizedSongs, // smart sorted, filtered, and history-excluded list

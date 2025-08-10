@@ -106,7 +106,9 @@ function MusicPlayerContent() {
   useEffect(() => {
     const checkUser = () => {
       const userId = localStorage.getItem('user_id')
+      console.log('🔄 Main app user check:', userId)
       if (!userId) {
+        console.log('🚫 No user found, resetting all state')
         setCurrentSong(null)
         setIsPlaying(false)
         setIsPlayerMaximized(false)
@@ -140,6 +142,7 @@ function MusicPlayerContent() {
   // Separate effect for initial user check
   useEffect(() => {
     const userId = localStorage.getItem('user_id')
+    console.log('🚀 Initial user check in main app:', userId)
     if (!userId && !loading) {
       setCurrentSong(null)
       setIsPlaying(false)
